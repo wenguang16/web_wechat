@@ -48,16 +48,19 @@ class RabbitPublisher extends Command
 
         $channel = $connection->channel();
 
-        $queue = 'hello';
+        $channel->queue_declare('task_queue', false, true, false, false);
 
-        $channel->queue_declare($queue, false, true, false, false);
-        echo ' [*] Waiting for messages. To exit press CTRL+C', "\n";
-        Log::notice('Rabbit [*] Waiting for messages. To exit press CTRL+C');
+        $argv = array("a"=>"red","b"=>"green","c"=>"blue","d"=>"yellow");
+        $data = implode(' ', array_slice($argv, 1));
+        if(empty($data)) $data = "Hello World!";
+        $msg = new AMQPMessage($data,
+            array('delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT)
+        );
 
-        $msg = new AMQPMessage('Hello World!');
-        $channel->basic_publish($msg, '', 'hello');
+        $channel->basic_publish($msg, '', 'task_queue');
 
-        echo " [x] Sent 'Hello World!'\n";
+        echo " [x] Sent ", $data, "\n";
+
 
         $channel->close();
         $connection->close();
