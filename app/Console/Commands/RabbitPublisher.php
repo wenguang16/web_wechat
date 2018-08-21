@@ -51,13 +51,13 @@ class RabbitPublisher extends Command
         $channel->queue_declare('task_queue', false, true, false, false);
 
         $argv = array("a"=>"red","b"=>"green","c"=>"blue","d"=>"yellow");
-        $data = implode(' ', array_slice($argv, 1));
-        if(empty($data)) $data = "Hello World!";
-        $msg = new AMQPMessage($data,
-            array('delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT)
-        );
+        $channel->exchange_declare('logs', 'fanout', false, false, false);
 
-        $channel->basic_publish($msg, '', 'task_queue');
+        $data = implode(' ', array_slice($argv, 1));
+        if(empty($data)) $data = "info: Hello World!";
+        $msg = new AMQPMessage($data);
+
+        $channel->basic_publish($msg, 'logs');
 
         echo " [x] Sent ", $data, "\n";
 
